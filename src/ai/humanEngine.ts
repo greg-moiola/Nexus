@@ -30,7 +30,7 @@ interface HumanDetectionResult {
 
 const humanConfig: Partial<H.Config> = {
   backend: 'webgl',
-  modelBasePath: '/models/',
+  modelBasePath: `${import.meta.env.BASE_URL}models/`,
   cacheModels: true,
 
   filter: {
