@@ -313,9 +313,13 @@ function cropPerson(
   box: [number, number, number, number],
 ): string {
   const [x, y, width, height] = box
+  const maxCropDimension = 384
+  const scale = Math.min(1, maxCropDimension / Math.max(width, height))
 
-  const crop = createCanvas(width, height)
-  const context = crop.getContext('2d')
+  // CLIP ultimately resizes inputs to its own compact image size. Avoid
+  // encoding full-resolution person crops as large base64 strings.
+  const crop = createCanvas(width * scale, height * scale)
+  const context = crop.getContext('2d', { alpha: false })
 
   if (!context) {
     throw new Error('Unable to create person crop.')
@@ -327,7 +331,7 @@ function cropPerson(
     0, 0, crop.width, crop.height,
   )
 
-  return crop.toDataURL('image/jpeg', 0.78)
+  return crop.toDataURL('image/jpeg', 0.76)
 }
 
 function cropTorso(
