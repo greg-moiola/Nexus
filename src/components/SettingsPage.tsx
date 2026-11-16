@@ -140,16 +140,16 @@ export default function SettingsPage() {
           </div>
           <div className="settings-info-row">
             <span><Cpu size={15} /> AI inference engine</span>
-            <strong className="settings-pending">NOT INITIALIZED</strong>
+            <strong className="settings-ready">ON-DEMAND</strong>
           </div>
           <div className="settings-info-row">
             <span><HardDrive size={15} /> Model storage</span>
-            <strong className="settings-pending">NOT CONFIGURED</strong>
+            <strong className="settings-pending">FIRST-USE LOAD</strong>
           </div>
 
           <div className="settings-system-footnote">
             <span className="engine-dot muted" />
-            AI models and offline capabilities will be configured in a later development phase.
+            Analysis models initialize only when their module is used. Some model files are fetched on first use and may be cached by the browser.
           </div>
         </section>
 
