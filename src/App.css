@@ -211,7 +211,7 @@
   height: 100%;
   background: var(--cyan);
   box-shadow: 0 0 12px var(--cyan);
-  animation: boot-progress 3.2s ease-in-out forwards;
+  animation: boot-progress 1.45s ease-in-out forwards;
 }
 
 .boot-status {
@@ -1567,5 +1567,139 @@
   .image-analysis-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+
+/* =========================================
+   NEXUS — LIGHTWEIGHT MODULE TRANSITIONS
+========================================= */
+
+.nexus-module-loading {
+  min-height: min(62vh, 620px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 36px 20px;
+  text-align: center;
+  border: 1px solid rgba(93, 174, 211, 0.12);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(35, 160, 203, 0.11), transparent 34%),
+    linear-gradient(145deg, rgba(15, 32, 49, 0.82), rgba(7, 17, 29, 0.92));
+}
+
+.nexus-loading-orbit {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 9px;
+  border: 1px solid rgba(69, 207, 240, 0.2);
+  border-top-color: #55dff8;
+  border-right-color: rgba(69, 207, 240, 0.65);
+  border-radius: 50%;
+  box-shadow: 0 0 26px rgba(57, 217, 245, 0.1);
+  animation: nexus-loading-spin 1s linear infinite;
+}
+
+.nexus-loading-kicker {
+  color: #58bdd9;
+  font: 700 9px/1.4 monospace;
+  letter-spacing: 2px;
+}
+
+.nexus-module-loading strong {
+  color: #eaf5ff;
+  font-size: clamp(18px, 2.2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.nexus-loading-caption {
+  color: #8198ad;
+  font-size: 12px;
+}
+
+@keyframes nexus-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexus-loading-orbit { animation: none; }
+}
+
+
+/* =========================================
+   NEXUS — COMMAND CENTER FINISH
+========================================= */
+
+.main-area {
+  background:
+    radial-gradient(ellipse at 76% 0%, rgba(21, 105, 145, 0.12), transparent 38%),
+    radial-gradient(ellipse at 12% 72%, rgba(19, 73, 111, 0.08), transparent 34%),
+    #080f19;
+}
+
+.metric-card,
+.panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.metric-card::before,
+.panel::before {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(80, 207, 239, 0.28), transparent);
+}
+
+.metric-card {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(48, 153, 193, 0.09), transparent 58%),
+    linear-gradient(145deg, #122236, #0e1a29);
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(57, 217, 245, 0.38);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 0 22px rgba(57, 217, 245, 0.045);
+}
+
+.panel {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(43, 133, 171, 0.065), transparent 52%),
+    linear-gradient(145deg, #101f30, #0d1928);
+}
+
+.module-item:focus-visible,
+.nav-item:focus-visible,
+.mobile-menu:focus-visible,
+.mobile-close:focus-visible {
+  outline: 2px solid rgba(78, 211, 245, 0.85);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .metric-card:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
