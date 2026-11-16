@@ -291,3 +291,5 @@
   .settings-info-row { align-items: flex-start; }
   .settings-footer { align-items: flex-start; flex-direction: column; }
 }
+
+.settings-info-row .settings-ready { color: #58d9b1; letter-spacing: 0.5px; }
