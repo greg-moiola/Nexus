@@ -16,11 +16,7 @@ import {
   Zap,
 } from 'lucide-react'
 
-import {
-  analyzeImage,
-  isHumanEngineReady,
-  type ImageAnalysisResult,
-} from '../ai/humanEngine'
+import type { ImageAnalysisResult } from '../ai/humanEngine'
 
 import './ImageAnalysis.css'
 
@@ -99,6 +95,7 @@ export default function ImageAnalysis({ onBack }: ImageAnalysisProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState('')
   const [analysisTime, setAnalysisTime] = useState<number | null>(null)
+  const [engineReady, setEngineReady] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -159,8 +156,10 @@ export default function ImageAnalysis({ onBack }: ImageAnalysisProps) {
     const startTime = performance.now()
 
     try {
+      const { analyzeImage, isHumanEngineReady } = await import('../ai/humanEngine')
       const analysisResult = await analyzeImage(image)
 
+      setEngineReady(isHumanEngineReady())
       setResult(analysisResult)
       setAnalysisTime(Math.round(performance.now() - startTime))
     } catch (analysisError) {
@@ -197,8 +196,6 @@ export default function ImageAnalysis({ onBack }: ImageAnalysisProps) {
   const averageConfidence = result
     ? getAverageConfidence(result)
     : 0
-
-  const engineReady = isHumanEngineReady()
 
   return (
     <div className="image-analysis nexus-image-analysis">
