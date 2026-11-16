@@ -138,11 +138,48 @@ export async function analyzeImage(
     throw new Error('Il motore IA non è stato inizializzato.')
   }
 
+  // Large phone photos can be several thousand pixels wide. A bounded
+  // processing surface reduces tensor allocation and inference time while
+  // keeping the returned face boxes aligned with the original image.
+  const originalWidth = input instanceof HTMLImageElement
+    ? input.naturalWidth
+    : input.width
+  const originalHeight = input instanceof HTMLImageElement
+    ? input.naturalHeight
+    : input.height
+
+  if (!originalWidth || !originalHeight) {
+    throw new Error('L’immagine selezionata non ha dimensioni valide.')
+  }
+
+  const maxDimension = 1600
+  const scale = Math.min(1, maxDimension / Math.max(originalWidth, originalHeight))
+  const processingWidth = Math.max(1, Math.round(originalWidth * scale))
+  const processingHeight = Math.max(1, Math.round(originalHeight * scale))
+
+  let processingInput: HTMLImageElement | HTMLCanvasElement = input
+
+  if (scale < 1) {
+    const canvas = document.createElement('canvas')
+    canvas.width = processingWidth
+    canvas.height = processingHeight
+
+    const context = canvas.getContext('2d', { alpha: false })
+    if (!context) {
+      throw new Error('Impossibile preparare l’immagine per l’analisi.')
+    }
+
+    context.drawImage(input, 0, 0, processingWidth, processingHeight)
+    processingInput = canvas
+  }
+
   const result = (
-    await humanInstance.detect(input)
+    await humanInstance.detect(processingInput)
   ) as unknown as HumanDetectionResult
 
   const detectedFaces = result.face ?? []
+  const coordinateScaleX = originalWidth / processingWidth
+  const coordinateScaleY = originalHeight / processingHeight
 
   const faces: DetectedFace[] = detectedFaces.map((face) => {
     const expressions = (face.emotion ?? [])
@@ -157,10 +194,10 @@ export async function analyzeImage(
     const box =
       rawBox && rawBox.length >= 4
         ? ([
-            rawBox[0],
-            rawBox[1],
-            rawBox[2],
-            rawBox[3],
+            rawBox[0] * coordinateScaleX,
+            rawBox[1] * coordinateScaleY,
+            rawBox[2] * coordinateScaleX,
+            rawBox[3] * coordinateScaleY,
           ] as [number, number, number, number])
         : null
 
