@@ -17,12 +17,10 @@ import {
   Video,
   AlertTriangle,
 } from 'lucide-react'
-import {
-  analyzeSubjectImage,
-  analyzeSubjectVideo,
-  type SubjectSearchProgress,
-  type SubjectSearchResult,
-  type SubjectSearchFrame,
+import type {
+  SubjectSearchProgress,
+  SubjectSearchResult,
+  SubjectSearchFrame,
 } from '../ai/subjectSearchEngine'
 import './SubjectSearch.css'
 
@@ -57,7 +55,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 function loadVideo(url: string): Promise<HTMLVideoElement> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video')
-    video.preload = 'auto'
+    video.preload = 'metadata'
     video.muted = true
     video.playsInline = true
 
@@ -78,11 +76,16 @@ function captureVideoFrame(
 
     const capture = () => {
       try {
+        const maxDimension = 1280
+        const scale = Math.min(
+          1,
+          maxDimension / Math.max(video.videoWidth, video.videoHeight),
+        )
         const canvas = document.createElement('canvas')
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale))
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale))
 
-        const context = canvas.getContext('2d')
+        const context = canvas.getContext('2d', { alpha: false })
 
         if (!context) {
           reject(new Error('Unable to create the video preview.'))
@@ -90,7 +93,7 @@ function captureVideoFrame(
         }
 
         context.drawImage(video, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.92))
+        resolve(canvas.toDataURL('image/jpeg', 0.84))
       } catch {
         reject(new Error('Unable to capture the selected video frame.'))
       }
@@ -133,6 +136,7 @@ function getDisplayFrame(
 
 export default function SubjectSearch({ onBack }: SubjectSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const lastProgressRef = useRef<SubjectSearchProgress | null>(null)
 
   const [sourceUrl, setSourceUrl] = useState<string | null>(null)
   const [sourceType, setSourceType] = useState<'image' | 'video' | null>(null)
@@ -231,13 +235,39 @@ export default function SubjectSearch({ onBack }: SubjectSearchProps) {
     setResult(null)
     setResultImage(null)
     setDisplayFrame(null)
+    setProgress({
+      stage: 'loading',
+      current: 0,
+      total: 1,
+      message: 'Preparing local visual engines…',
+    })
+    lastProgressRef.current = null
     setIsAnalyzing(true)
 
     const updateProgress = (value: SubjectSearchProgress) => {
-      setProgress(value)
+      const previous = lastProgressRef.current
+      const stageChanged = previous?.stage !== value.stage
+      const meaningfulStep =
+        value.current === 0
+        || value.current === value.total
+        || value.current % 3 === 0
+
+      lastProgressRef.current = value
+
+      // Keep progress useful without forcing a React render for every
+      // individual person detected in a long video.
+      if (stageChanged || meaningfulStep) {
+        setProgress(value)
+      }
     }
 
     try {
+      // The detector, TensorFlow.js, CLIP and translation model are fetched
+      // only after the user actually starts a visual search.
+      const { analyzeSubjectImage, analyzeSubjectVideo } = await import(
+        '../ai/subjectSearchEngine'
+      )
+
       let searchResult: SubjectSearchResult
       let videoForCapture: HTMLVideoElement | null = null
 
