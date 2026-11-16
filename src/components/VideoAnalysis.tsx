@@ -79,18 +79,23 @@ export default function VideoAnalysis({ onBack }: VideoAnalysisProps) {
     const video = videoRef.current
     if (!video || !video.videoWidth || !video.videoHeight) return
 
+    const maxDimension = 1600
+    const scale = Math.min(
+      1,
+      maxDimension / Math.max(video.videoWidth, video.videoHeight),
+    )
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale))
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale))
 
-    const context = canvas.getContext('2d')
+    const context = canvas.getContext('2d', { alpha: false })
     if (!context) {
       setError('Unable to capture this frame on the current device.')
       return
     }
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
-    setCapturedFrame(canvas.toDataURL('image/jpeg', 0.9))
+    setCapturedFrame(canvas.toDataURL('image/jpeg', 0.84))
     setError('')
   }
 
