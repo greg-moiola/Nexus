@@ -1,9 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import LiveAnalysis from './components/LiveAnalysis'
-import SubjectSearch from './components/SubjectSearch'
-import VideoAnalysis from './components/VideoAnalysis'
-import SettingsPage from './components/SettingsPage'
-import ImageAnalysis from './components/ImageAnalysis'
+import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
+
 import {
   Activity,
   Aperture,
@@ -29,6 +25,14 @@ import {
 } from 'lucide-react'
 import './App.css'
 
+// Keep the application shell lightweight: each analysis module is downloaded
+// only when the user opens it. Heavy AI dependencies stay outside the first load.
+const LiveAnalysis = lazy(() => import('./components/LiveAnalysis'))
+const SubjectSearch = lazy(() => import('./components/SubjectSearch'))
+const VideoAnalysis = lazy(() => import('./components/VideoAnalysis'))
+const SettingsPage = lazy(() => import('./components/SettingsPage'))
+const ImageAnalysis = lazy(() => import('./components/ImageAnalysis'))
+
 type Phase = 'access' | 'boot' | 'app'
 
 const navigation = [
@@ -50,7 +54,7 @@ function App() {
 
     const timer = window.setTimeout(() => {
       setPhase('app')
-    }, 3200)
+    }, 1450)
 
     return () => window.clearTimeout(timer)
   }, [phase])
@@ -198,7 +202,7 @@ function App() {
               <span>LOCAL ENVIRONMENT</span>
             </div>
             <div className="engine-state">INTERFACE ACTIVE</div>
-            <div className="engine-description">AI modules not initialized</div>
+            <div className="engine-description">AI modules initialize on demand</div>
           </div>
 
           <div className="sidebar-version">NEXUS / DEVELOPMENT BUILD</div>
@@ -232,6 +236,16 @@ function App() {
         </header>
 
         <div className="dashboard-content">
+          <Suspense
+            fallback={
+              <div className="nexus-module-loading" role="status" aria-live="polite">
+                <span className="nexus-loading-orbit" />
+                <span className="nexus-loading-kicker">NEXUS / MODULE INITIALIZATION</span>
+                <strong>Preparing workspace</strong>
+                <span className="nexus-loading-caption">Loading the selected local interface…</span>
+              </div>
+            }
+          >
           {activePage === 'Dashboard' ? (
             <>
               <div className="welcome-section">
@@ -274,8 +288,8 @@ function App() {
                     <span>AI ENGINE</span>
                     <Cpu size={19} />
                   </div>
-                  <div className="metric-status">NOT INITIALIZED</div>
-                  <div className="metric-bottom">Models will be integrated later</div>
+                  <div className="metric-status">ON-DEMAND</div>
+                  <div className="metric-bottom">Models load when an analysis starts</div>
                 </article>
 
                 <article className="metric-card">
@@ -368,7 +382,7 @@ function App() {
                     </div>
                     <div className="status-row">
                       <span>AI inference</span>
-                      <strong className="status-pending">PENDING</strong>
+                      <strong className="status-ready">ON-DEMAND</strong>
                     </div>
                     <div className="status-row">
                       <span>Camera access</span>
@@ -397,8 +411,8 @@ function App() {
                     <div className="activity-entry">
                       <span className="activity-marker muted" />
                       <div>
-                        <strong>AI integration</strong>
-                        <span>Awaiting implementation</span>
+                        <strong>Local AI modules</strong>
+                        <span>Loaded only when an analysis is requested</span>
                       </div>
                     </div>
                   </div>
@@ -440,6 +454,7 @@ function App() {
               </button>
             </div>
           )}
+          </Suspense>
         </div>
       </section>
     </main>
